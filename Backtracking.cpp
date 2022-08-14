@@ -1,15 +1,24 @@
-#include <vector>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <cstdlib>
+#include <chrono>
+#include <sstream>
 #include <algorithm>
+#include <climits>
+#include <stdio.h>
+#include <locale.h>
+#include <time.h>
+#include <vector>
 #include "Backtracking.h"
 #include "Actions.h"
 
 using namespace std;
-
-BackTracking::BackTracking(){
-    root = NULL;
-    
+using namespace std::chrono;
+BackTracking::BackTracking(int tam,vector<int> start,vector<int> final_state){
+    this->root = NULL;
+    this->start = start;
+    this->goal = final_state;
 }
 bool BackTracking::is_goal(vector<int> arr){
 
@@ -29,7 +38,7 @@ void BackTracking::set_start(vector<int> arr){
     this->start = arr;
 }
 
- void BackTracking::path(No *no){
+ void BackTracking::path(No *no,std::ofstream& myfile){
      No *aux = no;
      vector<vector<int>> path_reverse;
 
@@ -42,20 +51,33 @@ void BackTracking::set_start(vector<int> arr){
      std::reverse(path_reverse.begin(),path_reverse.end());
 
      for(int i = 0; i < path_reverse.size(); i++){
-         cout<<"[";
+         myfile<<"[";
           for (auto it = path_reverse[i].begin();
              it != path_reverse[i].end(); it++) {
-            cout << *it << ',';
+            myfile << *it << ',';
         }
-         cout<<"] => ";
+         myfile<<"] => " << endl;
      }
      
  }
 
 
 
-void BackTracking::init(int tam){
-    cout<< "Entrou init backtracking: "<<tam<< endl;
+void BackTracking::init(std::ofstream& myfile){
+    for(int i = 0; i < 100; i++)
+    {
+        myfile<< "-";
+    }
+    myfile << endl;
+    myfile<< "Backtracking: "<< endl;
+
+
+    int visited = 0;
+    int expanded = 0;
+    int cost = 0;
+    int depth = 0;
+    int level = 0;
+    int leaf = 0;
     bool s = false;
     bool f = false;
 
@@ -67,95 +89,84 @@ void BackTracking::init(int tam){
 
     Actions *action = new Actions();
     int count = 0;
-    No *aux = new No(tam);
+    No *aux = new No(this->tam);
     aux = root;
     aux->set_father(NULL);
 
+    auto start = std::chrono::high_resolution_clock::now();
     while (s != true || f != true)
     {   
            
 
-
-            cout << "Buscando..." << endl;
-            cout <<  "Antes" << endl;
-             for(auto itr : aux->get_state())
-            {
-                cout << itr << " ";
-            }
-            cout << endl;
                     
-
             vector<int> aux_state = aux->get_state();
-            No *aux2 = new No(aux->get_size());
-            
+            No *aux2 = new No(this->tam);          
             bool check = action->exec(aux,1,aux_state);
             
             if(check == 1 && aux->get_son1() == NULL){
-                cout << "R1 => " << check << endl;
+               
                 aux2->set_state(aux_state);
                 aux2->set_father(aux);
                 aux->set_son1(aux2);
-                aux = aux2;        
+                aux = aux2;
+                visited++;
+                depth++;        
             }
 
             if(check == 0){
-                cout << "TESTANDO R2" << check << endl;
+                
                 check = action->exec(aux,2,aux_state);
 
                 if(check == 1 && aux->get_son2() == NULL){
-                    cout << "R2 => " << check << endl;
+                   
                     aux2->set_state(aux_state);
                     aux2->set_father(aux);
                     aux->set_son2(aux2);
-                    aux = aux2; 
+                    aux = aux2;
+                    visited++;
+                    depth++; 
                 }
 
             }
 
 
             if(check == 0){
-                cout << "TESTANDO R3" << check << endl;
-                 check = action->exec(aux,3,aux_state);
-                cout << check << endl;  
-                cout << aux->get_son4() << endl;
+              
+                check = action->exec(aux,3,aux_state);
+                
                 if(check == 1 && aux->get_son3() == NULL){
-                    cout << "R3 => " << check << endl;
+                    
                     aux2->set_state(aux_state);
                     aux2->set_father(aux);
                     aux->set_son3(aux2);
-                    aux = aux2; 
+                    aux = aux2;
+                    visited++;
+                    depth++; 
                 }
 
             }
 
             if(check == 0){
-                cout << "TESTANDO R4" << check << endl;
+               
                 check = action->exec(aux,4,aux_state);
-                cout << check << endl;  
-                cout << aux->get_son4() << endl;
+                
                 if(check == 1 && aux->get_son4() == NULL){
-                     cout << "R4 => " << check << endl;
+                     
                     aux2->set_state(aux_state);
                     aux2->set_father(aux);
                     aux->set_son4(aux2);
-                    aux = aux2; 
+                    aux = aux2;
+                    visited++;
+                    depth++; 
                 }
 
             }  
 
 
-           
-            cout <<  "Depois" << endl;
-             for(auto itr : aux->get_state())
-            {
-                cout << itr << " ";
-            }
-            cout << endl;
-
-
             if(this->is_goal(aux->get_state())){
-                cout << "Sucesso" << endl;
+                myfile << "Sucesso" << endl;
                 s = true;
+                leaf++;
                 break;
             }
            
@@ -166,25 +177,38 @@ void BackTracking::init(int tam){
                 aux->get_son3() == NULL  && 
                 aux->get_son4() == NULL) 
             {
-                cout << "Backtracking"<< endl;
                 aux = aux->get_father();
+                depth--;
+                leaf++;
             }else if(check == 0) {
-                cout << "Fracasso" << endl;
+                myfile << "Resultado => Fracasso" << endl;
                 f = true;
-                break;;
+                break;
             }
 
             
-            //  if(count == 15){
-            //      break;
-            //  }
-    
     }
+    expanded = visited;
+    float average = float((expanded - 1)) / (visited - leaf);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> float_ms = end - start;
+    myfile <<"Visitados: "<< visited << endl;
+    myfile <<"Profundidade: "<< depth << endl;
+    myfile <<"Expandidos: " << expanded << endl;
+    myfile <<"Fato médio de ramificação: "<< average << endl; 
+    myfile <<"Tempo da busca: "<<float_ms.count() << "s" <<endl;
 
     if(s == true){
-        cout << "Imprimindo caminho" << endl;
-        this->path(aux);
+        myfile << "Caminho" << endl;
+        this->path(aux,myfile);
+        myfile << "Custo do caminho: "<< cost << endl;
     }
+
+    for(int i = 0; i < 100; i++)
+    {
+        myfile<< "-";
+    }
+    myfile << endl;
     
    
 }

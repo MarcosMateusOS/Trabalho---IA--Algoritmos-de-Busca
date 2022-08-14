@@ -17,13 +17,15 @@ No::No(int x){
     size = 2 * x + 1;
     id = id;
     prof = prof;
-    state.resize(size);
-
+    //state.resize(size);
+    //state.max_size(size);
+    state.reserve(size);
     father = NULL;
     son1 = NULL;
     son2 = NULL;
     son3 = NULL;
     son4 = NULL;
+    cost = 0;
 
 }
 
@@ -38,13 +40,14 @@ vector<int>No::get_state(){
 
 bool No::is_unique(No *no, vector<int> arr){
     No *aux = no->get_father();
-    cout <<"TESTANDO unicidade" << endl;
     bool check = true;
-    for(auto itr : arr)
-    {
-        cout << itr << " ";
-    }
-    cout << endl;
+    // cout <<"TESTANDO unicidade" << endl;
+    // 
+    // for(auto itr : arr)
+    // {
+    //     cout << itr << " ";
+    // }
+    // cout << endl;
     while (aux != NULL)
     {   
         //  cout <<"PAI"<<arr.size() << endl;
@@ -56,7 +59,7 @@ bool No::is_unique(No *no, vector<int> arr){
 
         if(arr == aux->get_state())
         {   
-            cout << "retornando falso" << endl;
+            //cout << "retornando falso" << endl;
             check = false;
             break;
         }else{

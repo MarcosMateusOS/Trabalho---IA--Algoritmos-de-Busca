@@ -15,6 +15,8 @@ class No
         int size;
         int id;
         int prof;
+        int cost;
+        int heuristic_cost;
         vector<int> state;
         No* father;
         No* son1;
@@ -27,6 +29,13 @@ class No
         No(int x);
 
         int get_size() {return size;}
+
+        void set_cost(int co){cost = co;};
+        int get_cost(){return cost;};
+
+        void set_heuristic_cost(int co){heuristic_cost = co;};
+        int get_heuristic_cost(){return heuristic_cost;};
+
         void set_state(vector<int> new_state);
         void set_father(No *no){father=no;};
          No* get_father(){return father;};
